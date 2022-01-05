@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  worker:
+    build:
+      context: .
+    entrypoint: ""
+    command: >
+      /bin/sh -c 'while true; do sleep 1; done'
+    depends_on:
+      - kafka
+  zookeeper:
+    restart: always
+    image: zookeeper:3.5
+  kafka:
+    restart: always
+    image: wurstmeister/kafka:2.12-2.4.0
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: test:1:1
+    depends_on:
+      - zookeeper
+  kafka-manager:
+    image: kafkamanager/kafka-manager:3.0.0.4
+    environment:
+      ZK_HOSTS: zookeeper:2181
+    depends_on:
+      - zookeeper
+    ports:
+      - "9000:9000"

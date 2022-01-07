@@ -1,4 +1,4 @@
-module benchmark-kafka-go-clients
+module github.com/sko00o/benchmark-kafka-go-clients
 
 go 1.16
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/apex/log"
@@ -64,15 +65,20 @@ func produceKafkaGo() {
 		"mode":   "producer",
 	})
 
-	producer := kafka.Writer{
-		Addr:         kafka.TCP(brokers),
-		Topic:        topic,
-		Balancer:     &kafka.Hash{},
-		BatchTimeout: BatchTimeout,
-		BatchSize:    BatchSize,
-		BatchBytes:   BatchBytes,
-		RequiredAcks: kafka.RequireNone,
-		Async:        true,
+	producer := &batchProducer{
+		Writer: &kafka.Writer{
+			Addr:         kafka.TCP(brokers),
+			Topic:        topic,
+			Balancer:     &kafka.Hash{},
+			BatchTimeout: BatchTimeout,
+			BatchSize:    BatchSize,
+			BatchBytes:   BatchBytes,
+			RequiredAcks: kafka.RequireNone,
+			Async:        false,
+		},
+		logger: logger,
+		sema:   make(chan struct{}, 10000),
+		wg:     new(sync.WaitGroup),
 	}
 	var start = time.Now()
 	for j := 0; j < numMessages; j++ {
@@ -93,4 +99,36 @@ func produceKafkaGo() {
 
 	elapsed := time.Since(start)
 	logger.Infof("msg/s: %.2f", float64(numMessages)/elapsed.Seconds())
+}
+
+type batchProducer struct {
+	*kafka.Writer
+	logger *log.Entry
+
+	// limit max goroutine number
+	sema chan struct{}
+	// wait for all goroutine
+	wg *sync.WaitGroup
+}
+
+func (bp *batchProducer) WriteMessages(ctx context.Context, msg kafka.Message) error {
+	bp.wg.Add(1)
+	bp.sema <- struct{}{}
+	go func() {
+		defer func() {
+			<-bp.sema
+			bp.wg.Done()
+		}()
+
+		if err := bp.Writer.WriteMessages(ctx, msg); err != nil {
+			bp.logger.WithError(err).Error("produce")
+		}
+	}()
+	return nil
+}
+
+func (bp *batchProducer) Close() error {
+	bp.wg.Wait()
+	close(bp.sema)
+	return bp.Writer.Close()
 }

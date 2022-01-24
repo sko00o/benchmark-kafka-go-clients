@@ -47,13 +47,13 @@ docker compose:
 | client    | producer (msg/s) | consumer (msg/s) |
 |-----------|------------------|------------------|
 | confluent | 28553            | 62435            |
-| kafka-go  | 481932           | 50983            |
+| kafka-go  | 11004            | 50983            |
 | sarama    | 37493            | 1044443          |
 
 | client    | producer MEM Usage (MiB) | consumer MEM Usage (MiB) |
 |-----------|--------------------------|--------------------------|
 | confluent | 47                       | 47                       |
-| kafka-go  | 200                      | 9                        |
+| kafka-go  | 215                      | 9                        |
 | sarama    | 10                       | 18                       |
 
 ### test case 2
@@ -64,13 +64,13 @@ docker compose:
 | client    | producer (msg/s) | consumer (msg/s) |
 |-----------|------------------|------------------|
 | confluent | 26446            | 60610            |
-| kafka-go  | 18073            | 44491            |
+| kafka-go  | 11027            | 44491            |
 | sarama    | 32256            | 313556           |
 
 | client    | producer MEM Usage (MiB) | consumer MEM Usage (MiB) |
 |-----------|--------------------------|--------------------------|
 | confluent | 47                       | 67                       |
-| kafka-go  | 977                      | 10                       |
+| kafka-go  | 215                      | 10                       |
 | sarama    | 10                       | 14                       |
 
 ## conclusion

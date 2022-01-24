@@ -65,14 +65,15 @@ func produceKafkaGo() {
 	})
 
 	producer := kafka.Writer{
-		Addr:         kafka.TCP(brokers),
-		Topic:        topic,
-		Balancer:     &kafka.Hash{},
-		BatchTimeout: BatchTimeout,
-		BatchSize:    BatchSize,
-		BatchBytes:   BatchBytes,
-		RequiredAcks: kafka.RequireNone,
-		Async:        true,
+		Addr:           kafka.TCP(brokers),
+		Topic:          topic,
+		Balancer:       &kafka.Hash{},
+		BatchQueueSize: 10,
+		BatchTimeout:   BatchTimeout,
+		BatchSize:      BatchSize,
+		BatchBytes:     BatchBytes,
+		RequiredAcks:   kafka.RequireNone,
+		Async:          true,
 	}
 	var start = time.Now()
 	for j := 0; j < numMessages; j++ {
